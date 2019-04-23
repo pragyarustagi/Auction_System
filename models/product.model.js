@@ -9,6 +9,7 @@ let ProductSchema = new Schema({
     startTime:{type: Date , required : true },
     endTime:{type: Date , required : true},
     winner: {type: String, required: false, max: 100},
+    email_sent: {type: String, required: false},
     imageURL: {type : Schema.Types.Mixed , required : false }
 });
 

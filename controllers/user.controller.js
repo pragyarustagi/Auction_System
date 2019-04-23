@@ -10,7 +10,7 @@ exports.user_signup = function (req, res) {
             name: req.body.name,
             username: req.body.username,
             email: req.body.email,
-            password: req.body.password,ç
+            password: req.body.password,
         }
     );
   user.save()

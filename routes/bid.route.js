@@ -7,4 +7,5 @@ const bid = require('../controllers/bid.controller');
 
 // a simple test url to check that all of our files are communicating correctly.
 router.post('/create', bid.bid_create);
+router.get('/getAllBids',bid.get_bid);
 module.exports = router;
