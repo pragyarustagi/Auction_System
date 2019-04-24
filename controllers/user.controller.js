@@ -15,7 +15,7 @@ exports.user_signup = function (req, res) {
     );
   user.save()
  .then(item => {
- res.send("User saved to database");
+ res.send("You have sucessfully Signed In!");
  })
  .catch(err => {
  res.status(400).send("Unable to save to database")});
@@ -24,7 +24,7 @@ exports.user_signup = function (req, res) {
 exports.user_login =  function (req, res) {
     console.log(req.query.username);
    db.connect(function(dbdata) {
-    dbdata.db("test").collection("users").find({username: req.query.username, password: req.query.password }).toArray(function(err, result) {
+    dbdata.db("AuctionSystem").collection("users").find({username: req.query.username, password: req.query.password }).toArray(function(err, result) {
         if (err) throw err;
         let count =0;
        
@@ -41,12 +41,12 @@ exports.user_login =  function (req, res) {
             });
             cookieUserData.save();
             dbdata.close();
-            res.status(200).send("Logged in");         
+            res.status(200).send("You have successfully Logged in!");         
         }
         else
         {
             dbdata.close();
-            res.status(400).send("wrong user id or  password");
+            res.status(400).send("Wrong username or password Enterted!");
         }
       });
 
@@ -55,18 +55,17 @@ exports.user_login =  function (req, res) {
 
 exports.user_logout =  function(req, res) {
     db.connect(function(dbdata) {
-        dbdata.db("test").collection("cookieuserdatas").find({cookie: req.query.cookie}).toArray(function(err, result) {
+        dbdata.db("AuctionSystem").collection("cookieuserdatas").find({cookie: req.query.cookie}).toArray(function(err, result) {
             if(err) throw err;
             let count =0;
 
             result.forEach(element => {
                 count= count+1;
             });
-            console.log(count);
             if(count == 1)
             {
                 let cookie1 = result[0].cookie
-                dbdata.db("test").collection("cookieuserdatas").deleteOne({cookie: cookie1})
+                dbdata.db("AuctionSystem").collection("cookieuserdatas").deleteOne({cookie: cookie1})
                 res.status(200).send("Logout successful");
             }
             else

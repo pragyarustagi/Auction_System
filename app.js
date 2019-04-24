@@ -12,7 +12,7 @@ const app = express();
 
 // Set up mongoose connection
 const mongoose = require('mongoose');
-const dbUrl   = `mongodb+srv://pragyarustagi:wewillcode@cluster0-cu8my.mongodb.net/test?retryWrites=true`;
+const dbUrl   = `mongodb+srv://pragyarustagi:wewillcode@cluster0-cu8my.mongodb.net/AuctionSystem?retryWrites=true`;
 mongoose.connect(dbUrl);
 mongoose.Promise = global.Promise;
 const db = mongoose.connection;
