@@ -23,141 +23,182 @@ exports.product_create = function (req, res) {
         });
 };
 
-
-
-
-
 exports.test1 = async function () {
     await db.connect(async function (dbData) {
-        console.log("log1");
-        await myfunc(dbData);
-        console.log("Product udpated.");
+        await findproduct(dbData);
         await dbData.close();
     });
 };
 
 
-myfunc = async function (dbData){
-    
-    return new Promise (resolve =>{dbData.db("AuctionSystem").collection("products").find({ $and: [{ winner: { $exists: false } }, { startTime: { $lt: new Date(parseInt(Date.now())) } }] }).toArray(async function (err, result) {
-        console.log("bkjsb");
-      //  console.log(result);
+findproduct = async function (dbData) {
+    return new Promise(resolve => {
+        dbData.db("AuctionSystem").collection("products").find({ $and: [{ winner: { $exists: false } }, { startTime: { $lt: new Date(parseInt(Date.now())) } }] }).toArray(async function (err, result) {
+            if (err) {
+                console.log(err);
+                return res.status(400).send('Product not udpated.');
+            }
+            await findbids(result, dbData);
+        })
+    });
+}
+
+
+findbids = async function (result, dbData) {
+    asyncLoop(result, async function (element, next) {
+        let var1 = await sortbids(dbData, element);
+        await updateproduct(var1, dbData);
+        next();
+    }, function (err) {
+        if (err) {
+            console.error('Error: ' + err.message);
+            return;
+        }
+    });
+}
+
+sortbids = async function (dbData, element) {
+    return dbData.db("AuctionSystem").collection("bids").find({ productId: element._id }).sort({ amount: -1 }).limit(1).toArray();
+}
+
+updateproduct = async function (result, dbData) {
+    if (result.length === 1) {
+        dbData.db("AuctionSystem").collection("products").update({ "_id": (result[0].productId) }, { $set: { "amount": result[0].amount, "winner": result[0].username } }, function (err, result) {
+            if (err) {
+                console.log(err);
+            }
+        });
+    };
+}
+
+
+exports.test2 = async function () {
+    await db.connect(async function (dbData) {
+        await checkemail(dbData);
+        await dbData.close();
+    });
+};
+
+checkemail = async function (dbData) {
+    return new Promise(resolve => {
+        dbData.db("AuctionSystem").collection("products").find({ $and: [{ winner: { $exists: true } }, { email_sent: { $exists: false } }] }).toArray(async function (err, result) {
+            if (err) {
+                console.log(err);
+                return res.status(400).send('Cannot send E-mail.');
+            }
+            let count = 0
+            result.forEach(element => {
+                count = count + 1;
+            })
+            if (count >= 1)
+                await searchbids(result, dbData);
+        })
+    });
+}
+
+searchbids = async function (result, dbData) {
+    console.log("result is", result)
+    asyncLoop(result, async function (element, next) {
+        let var1 = await getusername(dbData, element);
+        console.log("var1", var1);
+        console.log("element",element);
+        await getusers(dbData, var1, element);
+        next();
+    }, function (err) {
+        if (err) {
+            console.error('Error: ' + err.message);
+            return;
+        }
+    });
+}
+
+getusername = async function (dbData, element) {
+    return dbData.db("AuctionSystem").collection("bids").distinct("username", { productId: element._id });
+}
+
+getusers = async function (dbData, obj1, element) {
+    asyncLoop(obj1, async function (ele, next) {
+        let var2 = await getuserarray(dbData, ele);
+        console.log(var2);
+        await sendmail(var2, element, dbData)
+        next();
+
+    }, function (err) {
+        if (err) {
+            console.error('Error: ' + err.message);
+            return;
+        }
+    });
+}
+
+getuserarray = async function (dbData, element) {
+    console.log("Hiiiii", element.username)
+    return dbData.db("AuctionSystem").collection("users").find({ username: element }).toArray();
+}
+
+sendmail = async function (var2, element, dbData) {
+    console.log("sent email", element)
+    let transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: "pragyarustagi.2101@gmail.com",
+            pass: "oailzewcdnxeheoc"
+        }
+    })
+    let mailOptions = {
+        from: "pragyarustagi.2101@gmail.com",
+        to: var2[0].email,
+        subject: 'Bidding Result',
+        text: "Hi there, " + element.winner + " won the bid by " + element.amount + " for Product ID = " + element._id + " and Product = " + element.name
+    }
+    return transporter.sendMail(mailOptions, function (err, info) {
         if (err) {
             console.log(err);
-            //dbData.close();
-            return res.status(400).send('Product not udpated.');
+        } else {
+            console.log("Email successfully sent!");
         }
-        await myfunc2(result,dbData);
-
-        
-    })});
-}
-
-myfunc2 =async function (result,dbData) {
-          asyncLoop(result,async function (element,next) {
-                console.log(element);
-                let var1 = await  cd(dbData,element);
-                    await ab(var1,dbData);
-                    next();
-             }, function (err)
-             {
-                 if (err)
-                 {
-                     console.error('Error: ' + err.message);
-                     return;
-                 }
-              
-                 console.log('Finished!');
-             });
-}
-
-cd = async function (dbData,element){
-    console.log("cd");
-   return  dbData.db("AuctionSystem").collection("bids").find({ productId: element._id }).sort({ amount: -1 }).limit(1).toArray();
-}
-
-ab =async  function (result,dbData) {        
-        console.log("ab");
-        if (result.length === 1) {
-             dbData.db("AuctionSystem").collection("products").update({ "_id": (result[0].productId) }, { $set: { "amount": result[0].amount, "winner": result[0].username } }, function (err, result) {
-                if (err) {
-                    console.log(err);
-                }
-            });
-        };
-}
-
-exports.test2 = async function (req, res) {
-    await db.connect(async function (dbData) {
-        console.log("HI, I'm in Test2")
-        await dbData.db("AuctionSystem").collection("products").find({ winner: { $exists: true } }, { email_sent: { $exists: false } }).toArray(async function (err, result) {
-            if (err) {
-                dbData.close();
-                return res.status(400).send('Cannot send E-mail');
-            }
-            await result.forEach(element => async function () {
-                await dbData.db("AuctionSystem").collection("bids").find({ productId: element._id }).toArray(async function (err, result) {
-                    if (err) {
-                        console.log(err);
-                    }
-                    await dbData.db("AuctionSystem").collection("users").find({ username: element.username }).toArray(async function (err, result) {
-                        if (err) {
-                            console.log(err);
-                        }
-
-                        // mail 
-                        let transporter = nodemailer.createTransport({
-                            service: "gmail",
-                            auth: {
-                                user: "pragyarustagi.2101@gmail.com",
-                                pass: "oailzewcdnxeheoc"
-                            }
-                        });
-                        await result.forEach(obj => {
-                            let mailOptions = {
-                                from: "pragyarustagi.2101@gmail.com",
-                                to: obj.email,
-                                subject: 'Bidding Result',
-                                text: "Hi there, " + obj.name + " won the bid by " + element.amount + " for Product ID = " + element._id + " and Product = " + element.name
-
-                            };
-
-                            transporter.sendMail(mailOptions, function (err, info) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    console.log("Email successfully sent!");
-                                }
-                            });
-                        });
-                    })
-                })
-            })
-        })
-        await dbData.close();
+        dbData.close();
     })
+}
+
+exports.test3 = async function () {
+    await db.connect(async function (dbData) {
+        await findproducts(dbData);
+        await dbData.close();
+    });
 };
 
-exports.test3 = async function (req, res) {
-    await db.connect(async function (dbData) {
-        console.log("Hi, I'm in test3");
-        await dbData.db("AuctionSystem").collection("products").find({ winner: { $exists: true } }).toArray(async function (err, result) {
+findproducts = async function (dbData) {
+    return new Promise(resolve => {
+        dbData.db("AuctionSystem").collection("products").find({ winner: { $exists: true } }).toArray(async function (err, result) {
             if (err) {
-                dbData.close();
-                
+                console.log(err);
             }
-            await result.forEach(element => async function () {
-                await dbData.db("AuctionSystem").collection("products").update({ "_id": element._id }, { $set: { "email_sent": "YES" } }), (function (err, result) {
-                    if (err) {
-                        dbData.close();
-                    }
-                })
-            });
-        });
-        await dbData.close();
+            let count = 0
+            result.forEach(element => {
+                count = count + 1
+            })
+            if (count >= 1) 
+                await updateproductemail(result, dbData);
+        })
     });
 }
 
+updateproductemail = async function (result, dbData) {
+    asyncLoop(result, async function (element, next) {
+        await updateemail(dbData, element);
+        next();
+    }, function (err) {
+        if (err) {
+            console.error('Error: ' + err.message);
+            return;
+        }
+    });
+}
+
+updateemail = async function (dbData, element) {
+    return dbData.db("AuctionSystem").collection("products").update({ "_id": element._id }, { $set: { "email_sent": "YES" } });
+}
 
 exports.product_update = function (req, res) {
     Product.findByIdAndUpdate(req.params.id, { $set: req.body }, function (err, product) {
