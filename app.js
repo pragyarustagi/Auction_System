@@ -24,6 +24,9 @@ app.use('/products', product);
 app.use('/user', user);
 app.use('/bid', bid);
 app.use('/cron', cron);
+app.get('/cool', function (req, res) {
+    res.send('0.0');
+  })
 app.use(cookieParser())
 
 let port = 8090;
