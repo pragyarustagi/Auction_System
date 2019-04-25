@@ -23,3 +23,5 @@ APIs
 4. Submit new Bid. To submit bid the user must be logged in. To view the item details and all other stuff, no need to be authenticated.
 5. View all bids submitted by an authenticated user.
 
+For accessing the API, you can refer to the following Postman API collection - 
+https://www.getpostman.com/collections/7ee3b084bbba3470620e
