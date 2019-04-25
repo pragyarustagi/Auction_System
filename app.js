@@ -29,7 +29,7 @@ app.get('/cool', function (req, res) {
   })
 app.use(cookieParser())
 
-let port = 5000;
+let port = process.env.PORT || 80
 
 app.listen(port, () => {
     console.log('Server is up and running on port numner ' + port);
