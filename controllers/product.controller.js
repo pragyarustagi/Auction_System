@@ -142,7 +142,7 @@ sendmail = async function (var2, element, dbData) {
         service: "gmail",
         auth: {
             user: "pragyarustagi.2101@gmail.com",
-            pass: "oailzewcdnxeheoc"
+            pass: ""
         }
     })
     let mailOptions = {
